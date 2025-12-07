@@ -1,0 +1,46 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual envs
+venv/
+env/
+.venv/
+
+# Python packaging
+dist/
+build/
+*.egg-info/
+
+# PyTorch / models / checkpoints
+*.pt
+*.pth
+checkpoints/
+weights/
+
+# Data (do not push raw datasets)
+data/
+dataset/
+*.csv
+*.zip
+*.tar.gz
+*.tgz
+*.jpg
+*.jpeg
+*.png
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Logs and results
+logs/
+results/
+*.log
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
