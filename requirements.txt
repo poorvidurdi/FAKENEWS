@@ -1,0 +1,14 @@
+torch
+torchvision
+transformers
+datasets
+sentence-transformers
+opencv-python
+scikit-learn
+pandas
+numpy
+matplotlib
+streamlit
+tqdm
+albumentations
+pytorch-grad-cam
