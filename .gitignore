@@ -1,46 +1,53 @@
-# Byte-compiled / cache
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Virtual envs
+# =========================
+# Virtual Environments
+# =========================
 venv/
-env/
-.venv/
+venv311/
+.env
+.env.local
 
-# Python packaging
-dist/
-build/
-*.egg-info/
+# =========================
+# Python cache / compiled
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# PyTorch / models / checkpoints
-*.pt
-*.pth
-checkpoints/
-weights/
-
-# Data (do not push raw datasets)
-data/
-dataset/
-*.csv
-*.zip
-*.tar.gz
-*.tgz
-*.jpg
-*.jpeg
-*.png
-
-# Notebooks
-.ipynb_checkpoints/
-
-# Logs and results
-logs/
-results/
-*.log
-
-# VS Code
-.vscode/
-
-# OS
+# =========================
+# OS / Editor junk
+# =========================
 .DS_Store
 Thumbs.db
+.vscode/
+.idea/
+
+# =========================
+# Python packaging
+# =========================
+*.egg-info/
+dist/
+build/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Model artifacts (KEEP if you want versioned models)
+# =========================
+# If you want to TRACK models, comment these out
+# models/**/*.pkl
+# models/**/*.pt
+
+# =========================
+# Temporary / test files
+# =========================
+*.tmp
+*.bak

@@ -1,14 +1,33 @@
-torch
-torchvision
+# =========================
+# Core ML / DL
+# =========================
+numpy==1.26.4
+torch>=2.2,<2.4
+torchvision>=0.17,<0.19
+
+# =========================
+# NLP / Text Models
+# =========================
 transformers
 datasets
 sentence-transformers
+
+# =========================
+# Image Forensics
+# =========================
 opencv-python
-scikit-learn
-pandas
-numpy
-matplotlib
-streamlit
-tqdm
 albumentations
 pytorch-grad-cam
+
+# =========================
+# ML Utilities
+# =========================
+scikit-learn
+pandas
+matplotlib
+tqdm
+
+# =========================
+# Frontend
+# =========================
+streamlit
