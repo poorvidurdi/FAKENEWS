@@ -43,11 +43,23 @@ build/
 # Model artifacts (KEEP if you want versioned models)
 # =========================
 # If you want to TRACK models, comment these out
-# models/**/*.pkl
-# models/**/*.pt
+models/**/*.pkl
+models/**/*.pt
 
 # =========================
 # Temporary / test files
 # =========================
 *.tmp
 *.bak
+
+# =========================
+# Data files
+# =========================
+data/images/
+data/processed/
+
+# =========================
+# Model artifacts
+# =========================
+models/**/*.pkl
+models/**/*.npy
