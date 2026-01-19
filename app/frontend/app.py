@@ -14,7 +14,7 @@ st.set_page_config(
 # --------------------------------------------------
 # Sidebar navigation
 # --------------------------------------------------
-st.sidebar.title("🧭 Navigation")
+st.sidebar.title("Navigation")
 page = st.sidebar.radio(
     "Go to",
     ["Text Fake News Detection", "Multimodal Fake News Detection", "Image Fake News Detection", "Model Analysis"]
@@ -25,7 +25,7 @@ page = st.sidebar.radio(
 # ==================================================
 if page == "Text Fake News Detection":
 
-    st.title("📰 Text Fake News Detection")
+    st.title("Text Fake News Detection")
     st.write(
         "Enter a news statement below. The model will classify it as "
         "**REAL**, **FAKE**, or **UNCERTAIN**, and highlight suspicious terms "
@@ -85,7 +85,7 @@ if page == "Text Fake News Detection":
                 )
 
             if suspicious_words:
-                st.markdown("⚠️ **Suspicious words influencing the decision**")
+                st.markdown("**Suspicious words influencing the decision**")
                 st.write(", ".join(suspicious_words))
 
 
@@ -94,7 +94,7 @@ if page == "Text Fake News Detection":
 # ==================================================
 elif page == "Multimodal Fake News Detection":
 
-    st.title("🧠 Multimodal Fake News Detection")
+    st.title("Multimodal Fake News Detection")
     st.write(
         "Analyze **text + image together** to detect **REAL**, **FAKE**, "
         "or **OUT-OF-CONTEXT** news."
@@ -133,7 +133,7 @@ elif page == "Multimodal Fake News Detection":
 
             result = response.json()
 
-            st.subheader("🔍 Multimodal Analysis Result")
+            st.subheader("Multimodal Analysis Result")
 
             st.write("**Text Prediction:**", result["text_prediction"])
             st.write("**Text Confidence:**", result["text_confidence"])
@@ -159,7 +159,7 @@ elif page == "Multimodal Fake News Detection":
                 
             suspicious_words = result.get("suspicious_words", [])
             if suspicious_words:
-                st.markdown("⚠️ **Suspicious words influencing the decision**")
+                st.markdown("**Suspicious words influencing the decision**")
                 st.write(", ".join(suspicious_words))
 
 # ==================================================
@@ -167,7 +167,7 @@ elif page == "Multimodal Fake News Detection":
 # ==================================================
 elif page == "Image Fake News Detection":
 
-    st.title("🖼️ Image Fake News Detection")
+    st.title("Image Fake News Detection")
     st.write(
         "Upload an image to detect if it is **REAL** or **FAKE** (manipulated). "
         "For fake images, we provide a **heatmap** showing manipulated regions."
@@ -199,7 +199,7 @@ elif page == "Image Fake News Detection":
 
             result = response.json()
 
-            st.subheader("🔍 Image Analysis Result")
+            st.subheader("Image Analysis Result")
             
             label = result["label"]
             conf = result["confidence"]
@@ -208,16 +208,35 @@ elif page == "Image Fake News Detection":
 
             if label == "REAL":
                 st.success(f"DECISION: REAL IMAGE (Confidence: {conf})")
-                st.write("✅ " + reasons[0])
+                st.write(reasons[0])
             else:
                 st.error(f"DECISION: FAKE / MANIPULATED (Confidence: {conf})")
-                st.write("⚠️ **Reason(s):**")
+                st.write("**Reason(s):**")
                 for r in reasons:
                     st.write(f"- {r}")
                 
                 if heatmap_path and os.path.exists(heatmap_path):
-                    st.subheader("🔥 Manipulation Heatmap")
+                    st.subheader("Manipulation Heatmap")
                     st.image(heatmap_path, caption="Heatmap: Red areas indicate higher probability of manipulation.")
+                    
+                    # Add heat map color gradient legend
+                    st.markdown("""
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                            <span style="font-size: 0.9rem; color: #555;">Real (Low)</span>
+                            <div style="flex-grow: 1; height: 15px; background: linear_gradient(to right, blue, cyan, green, yellow, red); border-radius: 3px;"></div>
+                            <span style="font-size: 0.9rem; color: #555;">Fake (High)</span>
+                        </div>
+                        <style>
+                            .heatmap-legend {
+                                background: linear-gradient(to right, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000);
+                                height: 12px;
+                                width: 100%;
+                                border-radius: 5px;
+                                margin: 5px 0;
+                            }
+                        </style>
+                        <div class="heatmap-legend"></div>
+                    """, unsafe_allow_html=True)
                 else:
                     st.warning("Heatmap generation failed or not available.")
 
@@ -237,7 +256,7 @@ else:
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            st.subheader("📰 Text Model")
+            st.subheader("Text Model")
             text_metrics = metrics.get("text_model", {})
             if text_metrics:
                 st.metric("Accuracy", f"{text_metrics['accuracy']:.2%}")
@@ -246,7 +265,7 @@ else:
                 st.info("Text metrics unavailable.")
 
         with col2:
-            st.subheader("🧠 Multimodal")
+            st.subheader("Multimodal")
             mm_metrics = metrics.get("multimodal_model", {})
             if mm_metrics:
                 st.metric("Accuracy", f"{mm_metrics['accuracy']:.2%}")
@@ -255,7 +274,7 @@ else:
                 st.info("Multimodal metrics unavailable.")
 
         with col3:
-            st.subheader("🖼️ Image Model")
+            st.subheader("Image Model")
             image_metrics = metrics.get("image_model", {})
             if image_metrics:
                 st.metric("Accuracy", f"{image_metrics['accuracy']:.2%}")

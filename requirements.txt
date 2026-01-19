@@ -27,7 +27,8 @@ pandas
 matplotlib
 tqdm
 
-# =========================
-# Frontend
+# = [ ] Frontend
 # =========================
 streamlit
+flask
+flask-cors

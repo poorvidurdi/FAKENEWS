@@ -46,7 +46,7 @@ class ImagePredictor:
             self.activations = output
         
         hook_a = layer.register_forward_hook(save_activations)
-        hook_g = layer.register_backward_hook(lambda module, grad_in, grad_out: self.activations_hook(grad_out[0]))
+        hook_g = layer.register_full_backward_hook(lambda module, grad_in, grad_out: self.activations_hook(grad_out[0]))
         
         model.zero_grad()
         output = model(input_tensor)
@@ -93,8 +93,17 @@ class ImagePredictor:
             
             heatmap = self.get_gradcam(self.model, input_tensor, pred.item())
             
+            # Robust image loading for Windows paths
+            try:
+                img_array = np.fromfile(image_path, np.uint8)
+                img_cv = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+                if img_cv is None:
+                    raise ValueError(f"Could not load image from {image_path}")
+            except Exception as e:
+                print(f"Error loading image for heatmap: {e}")
+                img_cv = cv2.imread(image_path) # Fallback
+            
             # Upscale heatmap
-            img_cv = cv2.imread(image_path)
             heatmap_resized = cv2.resize(heatmap, (img_cv.shape[1], img_cv.shape[0]))
             heatmap_resized = np.uint8(255 * heatmap_resized)
             heatmap_colored = cv2.applyColorMap(heatmap_resized, cv2.COLORMAP_JET)
