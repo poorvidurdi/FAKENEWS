@@ -40,26 +40,28 @@ build/
 .ipynb_checkpoints/
 
 # =========================
-# Model artifacts (KEEP if you want versioned models)
-# =========================
-# If you want to TRACK models, comment these out
-models/**/*.pkl
-models/**/*.pt
-
-# =========================
 # Temporary / test files
 # =========================
 *.tmp
 *.bak
+temp_uploads/
 
 # =========================
 # Data files
 # =========================
 data/images/
 data/processed/
+data/image_model/
 
 # =========================
 # Model artifacts
 # =========================
 models/**/*.pkl
+models/**/*.pt
 models/**/*.npy
+
+# =========================
+# Generated Results
+# =========================
+results/
+*.json

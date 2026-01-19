@@ -1,12 +1,14 @@
 import streamlit as st
 import requests
+import json
+import os
 
 # --------------------------------------------------
 # Page configuration
 # --------------------------------------------------
 st.set_page_config(
     page_title="Fake News Detection System",
-    layout="centered"
+    layout="wide"
 )
 
 # --------------------------------------------------
@@ -15,7 +17,7 @@ st.set_page_config(
 st.sidebar.title("🧭 Navigation")
 page = st.sidebar.radio(
     "Go to",
-    ["Text Fake News Detection", "Multimodal Fake News Detection"]
+    ["Text Fake News Detection", "Multimodal Fake News Detection", "Image Fake News Detection", "Model Analysis"]
 )
 
 # ==================================================
@@ -90,7 +92,7 @@ if page == "Text Fake News Detection":
 # ==================================================
 # PAGE 2 — MULTIMODAL FAKE NEWS DETECTION
 # ==================================================
-else:
+elif page == "Multimodal Fake News Detection":
 
     st.title("🧠 Multimodal Fake News Detection")
     st.write(
@@ -143,8 +145,13 @@ else:
 
             if final == "REAL":
                 st.success("FINAL DECISION: REAL NEWS")
+            elif "UNCERTAIN" in final:
+                st.warning(f"FINAL DECISION: {final}")
+                fake_reasons = result.get("fake_reasons", [])
+                if fake_reasons:
+                    st.info("**Note:** " + " AND ".join(fake_reasons))
             else:
-                st.error("FINAL DECISION: FAKE NEWS")
+                st.error(f"FINAL DECISION: {final}")
                 
                 fake_reasons = result.get("fake_reasons", [])
                 if fake_reasons:
@@ -154,3 +161,107 @@ else:
             if suspicious_words:
                 st.markdown("⚠️ **Suspicious words influencing the decision**")
                 st.write(", ".join(suspicious_words))
+
+# ==================================================
+# PAGE 3 — IMAGE FAKE NEWS DETECTION
+# ==================================================
+elif page == "Image Fake News Detection":
+
+    st.title("🖼️ Image Fake News Detection")
+    st.write(
+        "Upload an image to detect if it is **REAL** or **FAKE** (manipulated). "
+        "For fake images, we provide a **heatmap** showing manipulated regions."
+    )
+
+    image_file = st.file_uploader(
+        "Upload Image for Analysis",
+        type=["jpg", "jpeg", "png"]
+    )
+
+    if st.button("Analyze Image"):
+        if image_file is None:
+            st.warning("Please upload an image first.")
+        else:
+            with st.spinner("Analyzing image forensics..."):
+                try:
+                    response = requests.post(
+                        "http://127.0.0.1:5001/predict-image",
+                        files={"image": image_file},
+                        timeout=20
+                    )
+                except requests.exceptions.RequestException:
+                    st.error("Image backend is not running. Please start the image API.")
+                    st.stop()
+
+            if response.status_code != 200:
+                st.error("Error received from image backend.")
+                st.stop()
+
+            result = response.json()
+
+            st.subheader("🔍 Image Analysis Result")
+            
+            label = result["label"]
+            conf = result["confidence"]
+            reasons = result["reasons"]
+            heatmap_path = result["heatmap_path"]
+
+            if label == "REAL":
+                st.success(f"DECISION: REAL IMAGE (Confidence: {conf})")
+                st.write("✅ " + reasons[0])
+            else:
+                st.error(f"DECISION: FAKE / MANIPULATED (Confidence: {conf})")
+                st.write("⚠️ **Reason(s):**")
+                for r in reasons:
+                    st.write(f"- {r}")
+                
+                if heatmap_path and os.path.exists(heatmap_path):
+                    st.subheader("🔥 Manipulation Heatmap")
+                    st.image(heatmap_path, caption="Heatmap: Red areas indicate higher probability of manipulation.")
+                else:
+                    st.warning("Heatmap generation failed or not available.")
+
+# ==================================================
+# PAGE 4 — MODEL ANALYSIS
+# ==================================================
+else:
+    st.title("📊 Model Performance Analysis")
+    st.write("Performance metrics for both Text and Multimodal models based on the latest evaluations.")
+
+    metrics_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "results", "metrics.json")
+    
+    if os.path.exists(metrics_path):
+        with open(metrics_path, "r") as f:
+            metrics = json.load(f)
+        
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.subheader("📰 Text Model")
+            text_metrics = metrics.get("text_model", {})
+            if text_metrics:
+                st.metric("Accuracy", f"{text_metrics['accuracy']:.2%}")
+                st.metric("F1-Score", f"{text_metrics['f1_score']:.2f}")
+            else:
+                st.info("Text metrics unavailable.")
+
+        with col2:
+            st.subheader("🧠 Multimodal")
+            mm_metrics = metrics.get("multimodal_model", {})
+            if mm_metrics:
+                st.metric("Accuracy", f"{mm_metrics['accuracy']:.2%}")
+                st.metric("F1-Score", f"{mm_metrics['f1_score']:.2f}")
+            else:
+                st.info("Multimodal metrics unavailable.")
+
+        with col3:
+            st.subheader("🖼️ Image Model")
+            image_metrics = metrics.get("image_model", {})
+            if image_metrics:
+                st.metric("Accuracy", f"{image_metrics['accuracy']:.2%}")
+                st.metric("F1-Score", f"{image_metrics['f1_score']:.2f}")
+            else:
+                st.info("Image metrics unavailable.")
+    else:
+        st.error("Metrics data file not found. Please run the metrics generation script.")
+

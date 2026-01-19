@@ -1,6 +1,11 @@
 from flask import Flask, request, jsonify
 import os
+import sys
 import pickle
+
+# Fix Python path so `src/` is importable
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(BASE_DIR)
 
 # --------------------------------------------------
 # App initialization (API ONLY)
@@ -57,9 +62,9 @@ def predict_text():
     fake_probability = model.predict_proba(text_vector)[0][1]
 
     # Decision thresholds
-    if fake_probability < 0.40:
+    if fake_probability < 0.45:
         label = "REAL"
-    elif fake_probability < 0.60:
+    elif fake_probability <= 0.60:
         label = "UNCERTAIN"
     else:
         label = "FAKE"

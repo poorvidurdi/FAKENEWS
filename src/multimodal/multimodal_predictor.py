@@ -119,16 +119,21 @@ def predict_multimodal(news_text, image_path):
     # -------------------------------
     fake_reasons = []
     
+    # Image prediction for the "Uncertain + [Image Prediction]" requirement
+    image_label = "Fake" if image_out_of_context else "Real"
+
     if text_label == "FAKE":
         fake_reasons.append("Text is fake")
-        
-    if image_out_of_context:
-        fake_reasons.append("Image is out-of-context")
-        
-    if not fake_reasons:
-        final_decision = "REAL"
-    else:
         final_decision = "FAKE"
+    elif text_label == "UNCERTAIN":
+        fake_reasons.append("Sources need to manually verified")
+        final_decision = f"UNCERTAIN + {image_label}"
+    else:
+        if image_out_of_context:
+            fake_reasons.append("Image is out-of-context")
+            final_decision = "FAKE"
+        else:
+            final_decision = "REAL"
 
     # -------------------------------
     # RETURN RESPONSE
