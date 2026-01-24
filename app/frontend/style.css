@@ -1,0 +1,304 @@
+/* Font Import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+/* Global Variables */
+:root {
+    --bg-gradient-start: #0f172a;
+    --bg-gradient-end: #1e1b4b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --accent-color: #6366f1;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --card-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Streamlit Global Overrides */
+html,
+body,
+[class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
+
+.stApp {
+    background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+    color: var(--text-primary);
+}
+
+h1,
+h2,
+h3 {
+    color: var(--text-primary) !important;
+    font-weight: 700 !important;
+}
+
+p,
+label,
+.stMarkdown {
+    color: var(--text-secondary) !important;
+}
+
+/* Landing Page Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.landing-title {
+    font-size: 3.5rem !important;
+    background: linear-gradient(to right, #818cf8, #c084fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.landing-subtitle {
+    font-size: 1.2rem !important;
+    margin-bottom: 3rem !important;
+    animation: fadeInUp 1s ease-out;
+}
+
+/* Cards */
+.info-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    padding: 1.8rem;
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeInUp 1.2s ease-out;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.info-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--accent-color);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.card-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.8rem;
+    transition: color 0.3s ease;
+}
+
+.info-card:hover .card-title {
+    color: var(--accent-color);
+}
+
+.card-text {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+/* Hover Reveal Content */
+.card-detail {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    margin-top: 0;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 0;
+}
+
+.info-card:hover .card-detail {
+    max-height: 150px;
+    opacity: 1;
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.detail-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent-color);
+    border-radius: 50%;
+}
+
+/* Sidebar Enhancement */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+    border-right: 1px solid var(--card-border);
+}
+
+.sidebar-logo-container {
+    padding: 2rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid var(--card-border);
+    margin-bottom: 2rem;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.sidebar-logo-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    background: linear-gradient(to right, #818cf8, #c084fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+}
+
+.sidebar-tagline {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 0.3rem;
+}
+
+[data-testid="stSidebar"] .stRadio>label {
+    font-size: 0.8rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    color: var(--text-secondary) !important;
+    margin-bottom: 1.5rem !important;
+    padding-left: 0.5rem;
+}
+
+/* Sidebar Radio Buttons Styling - Premium Glass Look */
+div[data-testid="stSidebar"] .stRadio div[role="radiogroup"]>label {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.8rem 1.2rem !important;
+    border-radius: 10px;
+    margin-bottom: 0.8rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+div[data-testid="stSidebar"] .stRadio div[role="radiogroup"]>label:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateX(4px);
+}
+
+div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] [data-checked="true"] {
+    background: rgba(99, 102, 241, 0.15) !important;
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+}
+
+div[data-testid="stSidebar"] .stRadio div[role="radiogroup"] [data-checked="true"] div[data-testid="stMarkdownContainer"] p {
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+/* Custom Containers */
+.css-1r6slb0 {
+    /* Streamlit specific container adjustments */
+    padding: 2rem;
+}
+
+/* Custom Highlight (Pastel Red as requested) */
+.highlight-sus {
+    background-color: #fca5a5;
+    /* Pastel Red */
+    color: #7f1d1d;
+    /* Dark Red Text */
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* Result Cards for Text Analysis */
+.result-card-fake {
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 2px solid #ef4444;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.result-card-real {
+    background-color: rgba(34, 197, 94, 0.1);
+    border: 2px solid #22c55e;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.result-card-uncertain {
+    background-color: rgba(234, 179, 8, 0.1);
+    border: 2px solid #eab308;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.result-large-text {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.result-sub-text {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+/* Metric Tiles for System Metrics */
+.metric-tile {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.metric-tile:hover {
+    border-color: var(--accent-color);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.metric-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--accent-color);
+    margin-bottom: 0.2rem;
+}
+
+.metric-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.module-header {
+    margin-top: 2.5rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--card-border);
+    font-size: 1.4rem;
+    color: #fff;
+    font-weight: 600;
+}
