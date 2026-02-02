@@ -91,11 +91,7 @@ def predict_multimodal(news_text, image_path):
     text_result = get_text_prediction_from_api(news_text)
 
     text_label = text_result["label"]            # REAL / FAKE / UNCERTAIN
-    text_prob = text_result["fake_probability"]
-
-    # Treat UNCERTAIN conservatively as FAKE
-    if text_label == "UNCERTAIN":
-        text_label = "FAKE"
+    text_prob = text_result["probability_score"]
 
     # -------------------------------
     # IMAGE + MULTIMODAL SCORE
@@ -139,12 +135,16 @@ def predict_multimodal(news_text, image_path):
     # RETURN RESPONSE
     # -------------------------------
     return {
+        "category": "Fake" if final_decision == "FAKE" else "Real" if final_decision == "REAL" else "Uncertain",
         "text_prediction": text_label,
         "text_confidence": float(round(text_prob, 3)),
         "image_out_of_context": bool(image_out_of_context),
-        "multimodal_score": float(round(mm_prob, 3)),
+        "probability_score": float(round(mm_prob, 3)),
         "final_decision": final_decision,
-        "fake_reasons": fake_reasons,
+        "explanation": " AND ".join(fake_reasons) if fake_reasons else "Information across text and image appears consistent.",
+        "details": {
+            "fake_reasons": fake_reasons,
+        },
         "suspicious_words": text_result.get("suspicious_words", [])
     }
 

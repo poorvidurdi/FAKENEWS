@@ -18,7 +18,16 @@ def train_model():
     print(f"Using device: {device}")
 
     # 2. Data transformations
-    transform = transforms.Compose([
+    train_transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(15),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+
+    val_transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -29,38 +38,43 @@ def train_model():
         print(f"Error: Data directory {DATA_DIR} not found.")
         return
 
-    full_dataset = datasets.ImageFolder(root=DATA_DIR, transform=transform)
+    full_dataset = datasets.ImageFolder(root=DATA_DIR)
     
-    # -------------------------------------------------------------------------
-    # SUBSET LOGIC FOR FASTER TRAINING ON CPU
-    # -------------------------------------------------------------------------
-    # We will use only 2000 images total (1000 per class approx) for speed.
-    subset_indices = torch.randperm(len(full_dataset))[:2000]
-    subset_dataset = torch.utils.data.Subset(full_dataset, subset_indices)
+    # Increase subset size for better accuracy
+    subset_size = 5000
+    subset_indices = torch.randperm(len(full_dataset))[:subset_size]
     
-    train_size = int(0.8 * len(subset_dataset))
-    val_size = len(subset_dataset) - train_size
-    train_dataset, val_dataset = torch.utils.data.random_split(subset_dataset, [train_size, val_size])
+    train_size = int(0.8 * subset_size)
+    val_size = subset_size - train_size
+    
+    train_indices = subset_indices[:train_size]
+    val_indices = subset_indices[train_size:]
+
+    train_dataset = torch.utils.data.Subset(full_dataset, train_indices)
+    val_dataset = torch.utils.data.Subset(full_dataset, val_indices)
+    
+    # Apply different transforms
+    train_dataset.dataset.transform = train_transform
+    val_dataset.dataset.transform = val_transform
 
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
 
-    print(f"Dataset subset created: {len(subset_dataset)} images.")
+    print(f"Dataset subset created: {subset_size} images.")
     print(f"Original dataset size: {len(full_dataset)}")
-    print(f"Classes: {full_dataset.classes}")
 
     # 4. Model setup (ResNet18)
     model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
     num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 2) # Binary: REAL, FAKE
+    model.fc = nn.Linear(num_ftrs, 2)
     model = model.to(device)
 
     # 5. Loss and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.0005) # Slightly lower LR for stability
 
-    # 6. Training loop (Running 2 epochs for demonstration)
-    num_epochs = 2
+    # 6. Training loop
+    num_epochs = 3
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
@@ -75,8 +89,22 @@ def train_model():
             
             running_loss += loss.item() * inputs.size(0)
         
-        epoch_loss = running_loss / len(train_loader.dataset)
-        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}")
+        epoch_loss = running_loss / train_size
+        
+        # Validation
+        model.eval()
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for inputs, labels in val_loader:
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = model(inputs)
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+        
+        val_acc = 100 * correct / total
+        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}, Val Acc: {val_acc:.2f}%")
 
     # 7. Save model
     torch.save(model.state_dict(), MODEL_SAVE_PATH)

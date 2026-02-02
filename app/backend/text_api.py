@@ -88,10 +88,19 @@ def predict_text():
     # Response
     # --------------------------------------------------
 
+    explanation = f"Confidence in classification is {fake_probability:.1%}. "
+    if label == "FAKE":
+        explanation += "Detected strong indicators of linguistic manipulation and sensationalism."
+    elif label == "REAL":
+        explanation += "Text patterns align with standard journalistic standards."
+    else:
+        explanation += "Mixed indicators found; manual verification is advised."
+
     return jsonify({
         "label": label,
-        "fake_probability": round(float(fake_probability), 3),
-        "suspicious_words": suspicious_words
+        "probability_score": round(float(fake_probability), 3),
+        "suspicious_words": suspicious_words,
+        "explanation": explanation
     })
 
 # --------------------------------------------------

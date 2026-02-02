@@ -79,10 +79,17 @@ class ImagePredictor:
 
         outputs = self.model(input_tensor)
         probs = torch.softmax(outputs, dim=1)
-        conf, pred = torch.max(probs, dim=1)
         
-        label = "FAKE" if pred.item() == 0 else "REAL" # Assuming 0 is FAKE based on ImageFolder sorting (F before R)
-        confidence = conf.item()
+        # probs[0][0] is FAKE, probs[0][1] is REAL
+        fake_prob = probs[0][0].item()
+        real_prob = probs[0][1].item()
+        
+        if fake_prob > 0.4:  # More aggressive towards FAKE
+            label = "FAKE"
+            confidence = fake_prob
+        else:
+            label = "REAL"
+            confidence = real_prob
 
         heatmap_path = None
         reasons = []
@@ -91,7 +98,7 @@ class ImagePredictor:
             reasons.append("Anomalous compression patterns detected")
             reasons.append("Linguistic-visual mismatch found in metadata")
             
-            heatmap = self.get_gradcam(self.model, input_tensor, pred.item())
+            heatmap = self.get_gradcam(self.model, input_tensor, 0) # Target class 0 for FAKE
             
             # Robust image loading for Windows paths
             try:
