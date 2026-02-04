@@ -28,7 +28,7 @@ transform = transforms.Compose([
 # -----------------------
 # Load pretrained model
 # -----------------------
-model = models.resnet50(pretrained=True)
+model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
 model = torch.nn.Sequential(*list(model.children())[:-1])  # remove FC layer
 model.eval()
 

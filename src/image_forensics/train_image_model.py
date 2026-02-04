@@ -19,10 +19,11 @@ def train_model():
 
     # 2. Data transformations
     train_transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.RandomResizedCrop(224),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(15),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+        transforms.RandomRotation(20),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
+        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -41,7 +42,7 @@ def train_model():
     full_dataset = datasets.ImageFolder(root=DATA_DIR)
     
     # Increase subset size for better accuracy
-    subset_size = 5000
+    subset_size = 60000 
     subset_indices = torch.randperm(len(full_dataset))[:subset_size]
     
     train_size = int(0.8 * subset_size)
@@ -71,10 +72,11 @@ def train_model():
 
     # 5. Loss and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.0005) # Slightly lower LR for stability
+    optimizer = optim.Adam(model.parameters(), lr=0.0001) 
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=2, verbose=True)
 
     # 6. Training loop
-    num_epochs = 3
+    num_epochs = 10
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
@@ -105,6 +107,7 @@ def train_model():
         
         val_acc = 100 * correct / total
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}, Val Acc: {val_acc:.2f}%")
+        scheduler.step(val_acc)
 
     # 7. Save model
     torch.save(model.state_dict(), MODEL_SAVE_PATH)

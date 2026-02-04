@@ -11,9 +11,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(BASE_DIR)
 
 # -------------------------------------------------
-# Import core multimodal logic (UNCHANGED)
-# -------------------------------------------------
 from src.multimodal.multimodal_predictor import predict_multimodal
+from src.image_forensics.image_predictor import ImagePredictor
+
+# Initialize ImagePredictor once
+image_forensics = ImagePredictor()
 
 # -------------------------------------------------
 # Flask app setup
@@ -59,9 +61,13 @@ def predict_multimodal_route():
         image.save(image_path)
 
         # ----------------------------
-        # Run multimodal prediction
+        # Run forensics & multimodal prediction
         # ----------------------------
-        result = predict_multimodal(text, image_path)
+        forensics_result = image_forensics.predict(image_path)
+        result = predict_multimodal(text, image_path, forensics_result=forensics_result)
+        
+        # Ensure forensics detail is included in result for UI
+        result["image_forensics"] = forensics_result
 
         return jsonify(result), 200
 

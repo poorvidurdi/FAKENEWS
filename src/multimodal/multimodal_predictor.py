@@ -31,7 +31,11 @@ with open(MM_MODEL_PATH, "rb") as f:
 # =================================================
 # IMAGE FEATURE EXTRACTOR (ResNet50)
 # =================================================
+# NOTE: We use ResNet50 here because the multimodal model was trained with 
+# ResNet50 features (2048-dim). This is separate from the image forensics
+# classifier which uses ResNet18 with trained weights.
 
+from torchvision.models import resnet50, ResNet50_Weights
 weights = ResNet50_Weights.DEFAULT
 cnn = resnet50(weights=weights)
 cnn = torch.nn.Sequential(*list(cnn.children())[:-1])
@@ -80,7 +84,7 @@ def get_text_prediction_from_api(text):
 # MAIN MULTIMODAL PREDICTION FUNCTION
 # =================================================
 
-def predict_multimodal(news_text, image_path):
+def predict_multimodal(news_text, image_path, forensics_result=None):
     """
     Final rule-based multimodal decision logic
     """
@@ -102,43 +106,58 @@ def predict_multimodal(news_text, image_path):
     image_sparse = csr_matrix(image_features.reshape(1, -1))
 
     X_mm = hstack([X_text_vec, image_sparse])
-
-    # If your model expects dense, uncomment next line
-    # X_mm = X_mm.toarray()
-
     mm_prob = mm_model.predict_proba(X_mm)[0][1]
-
-    image_out_of_context = mm_prob >= MM_THRESHOLD
 
     # -------------------------------
     # FINAL RULE-BASED DECISION
     # -------------------------------
     fake_reasons = []
+    image_out_of_context = False
     
-    # Image prediction for the "Uncertain + [Image Prediction]" requirement
-    image_label = "Fake" if image_out_of_context else "Real"
+    # Check image forensics first if available
+    image_manipulated = False
+    if forensics_result and forensics_result.get("label") == "FAKE":
+        image_manipulated = True
+        fake_reasons.append(f"Image manipulation detected: {forensics_result['reasons'][0]}")
 
     if text_label == "FAKE":
-        fake_reasons.append("Text is fake")
+        fake_reasons.append("Text content is identified as fake")
         final_decision = "FAKE"
     elif text_label == "UNCERTAIN":
-        fake_reasons.append("Sources need to manually verified")
-        final_decision = f"UNCERTAIN + {image_label}"
+        if image_manipulated:
+            final_decision = "FAKE (Image Manipulated)"
+        elif mm_prob > MM_THRESHOLD:
+            final_decision = "UNCERTAIN (Out-of-Context?)"
+            image_out_of_context = True
+        else:
+            final_decision = "UNCERTAIN"
+        fake_reasons.append("Sources need manual verification")
     else:
-        if image_out_of_context:
-            fake_reasons.append("Image is out-of-context")
-            final_decision = "FAKE"
+        # text_label is REAL
+        if image_manipulated:
+            final_decision = "FAKE (Modified Image)"
+            fake_reasons.append("Authentic text paired with manipulated image")
+        elif mm_prob > 0.7:  # High multimodal mismatch
+            fake_reasons.append("Image is out-of-context (high mismatch)")
+            final_decision = "FAKE (Out-of-Context)"
+            image_out_of_context = True
+        elif mm_prob > MM_THRESHOLD:  # Moderate mismatch
+            fake_reasons.append("Image-text alignment is suspicious")
+            final_decision = "UNCERTAIN (Out-of-Context?)"
+            image_out_of_context = True
         else:
             final_decision = "REAL"
+            image_out_of_context = False
 
     # -------------------------------
     # RETURN RESPONSE
     # -------------------------------
     return {
-        "category": "Fake" if final_decision == "FAKE" else "Real" if final_decision == "REAL" else "Uncertain",
+        "category": "Fake" if "FAKE" in final_decision else "Real" if final_decision == "REAL" else "Uncertain",
         "text_prediction": text_label,
         "text_confidence": float(round(text_prob, 3)),
         "image_out_of_context": bool(image_out_of_context),
+        "image_manipulated": image_manipulated,
         "probability_score": float(round(mm_prob, 3)),
         "final_decision": final_decision,
         "explanation": " AND ".join(fake_reasons) if fake_reasons else "Information across text and image appears consistent.",

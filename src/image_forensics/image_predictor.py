@@ -15,12 +15,18 @@ os.makedirs(TEMP_HEATMAP_DIR, exist_ok=True)
 class ImagePredictor:
     def __init__(self):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # Revert to ResNet18 for compatibility with existing weights
         self.model = models.resnet18()
         num_ftrs = self.model.fc.in_features
         self.model.fc = nn.Linear(num_ftrs, 2)
         
         if os.path.exists(MODEL_PATH):
-            self.model.load_state_dict(torch.load(MODEL_PATH, map_location=self.device))
+            try:
+                self.model.load_state_dict(torch.load(MODEL_PATH, map_location=self.device))
+                print(f"Successfully loaded model from {MODEL_PATH}")
+            except Exception as e:
+                print(f"Warning: Could not load weights from {MODEL_PATH} due to: {e}")
+                print("Proceeding with randomly initialized weights. Please retrain.")
         
         self.model = self.model.to(self.device)
         self.model.eval()
@@ -40,7 +46,10 @@ class ImagePredictor:
 
     def get_gradcam(self, model, input_tensor, target_class):
         # Hook into the last convolutional layer
-        layer = model.layer4[1].conv2
+        # For ResNet18, layer4 contains BasicBlock which has conv1 and conv2
+        # For ResNet50, layer4 contains Bottleneck which has conv1, conv2, and conv3
+        # Since we're using ResNet18, target conv2
+        layer = model.layer4[-1].conv2
         
         def save_activations(module, input, output):
             self.activations = output

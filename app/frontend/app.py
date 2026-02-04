@@ -225,6 +225,21 @@ def show_main_app():
                                 st.write("Risk Factors:")
                                 for reason in res["details"]["fake_reasons"]:
                                     st.write(f"- {reason}")
+                            
+                            # Highlight Suspicious Words (same as text analysis)
+                            if res.get("suspicious_words"):
+                                import re
+                                highlighted_text = text_input
+                                for word in res["suspicious_words"]:
+                                    pattern = re.compile(rf'\b({re.escape(word)})\b', re.IGNORECASE)
+                                    highlighted_text = pattern.sub(r'<span class="highlight-sus">\1</span>', highlighted_text)
+                                
+                                st.markdown('<h4 style="margin-top: 1rem;">Misinformation Indicators:</h4>', unsafe_allow_html=True)
+                                st.caption("Highlighted words contributing to fake detection (neutral terms excluded):")
+                                st.markdown(
+                                    f'<div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px; line-height: 1.8; font-size: 1.05rem;">{highlighted_text}</div>', 
+                                    unsafe_allow_html=True
+                                )
                     except Exception as e:
                          st.error(f"Multimodal Backend Error: {e}")
                          st.info("Ensure the Multimodal API is running on port 5002.")
